@@ -1,7 +1,7 @@
 /**
   Date : 2025/12/10
   Author : NGUYEN MINH TRI
-  Project: Mimamori 3.0 (Smart Monitor System)
+  Project: Mimamori (Smart Monitor System)
 */
 
 #include <M5Stack.h>
@@ -38,31 +38,70 @@ Adafruit_NeoPixel pixels(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 bool remoteFanOn = false; // リモート操作状態
 float lastTemp = 0.0;     // 前回の温度 (トレンド分析用)
 
-// アバター描画関数
+// アバター描画関数 (修正版: fillArcを使わない)
+
 void drawFace(int emotion) {
+
   int x = 160; int y = 120;
-  M5.Lcd.fillRect(40, 80, 240, 100, M5.Lcd.color565(0,0,0)); // 顔エリアクリア (黒) 
+
+  M5.Lcd.fillRect(40, 80, 240, 100, BLACK); // 顔エリアクリア (黒)
+
   
+
   if (emotion == 0) { // 笑顔 (ANZEN)
+
     M5.Lcd.fillCircle(x - 50, y - 20, 10, WHITE); // 左目
+
     M5.Lcd.fillCircle(x + 50, y - 20, 10, WHITE); // 右目
-    M5.Lcd.fillArc(x, y + 10, 40, 45, 45, 135, WHITE); // 口
+
+    // 口 (笑顔)
+
+    M5.Lcd.fillRect(x - 40, y + 20, 80, 10, WHITE);
+
+    M5.Lcd.fillRect(x - 40, y + 20, 10, 5, BLACK); // 角を削って丸く見せる工夫
+
+    M5.Lcd.fillRect(x + 30, y + 20, 10, 5, BLACK);
+
   } 
+
   else if (emotion == 1) { // 真顔 (CHUI)
+
     M5.Lcd.fillCircle(x - 50, y - 20, 10, YELLOW);
+
     M5.Lcd.fillCircle(x + 50, y - 20, 10, YELLOW);
-    M5.Lcd.fillRect(x - 40, y + 20, 80, 5, YELLOW); // 一文字の口
+
+    // 口 (真顔)
+
+    M5.Lcd.fillRect(x - 40, y + 20, 80, 5, YELLOW); 
+
   }
+
   else if (emotion == 2) { // 泣き顔 (KIKEN)
+
     M5.Lcd.fillCircle(x - 50, y - 20, 10, RED);
+
     M5.Lcd.fillCircle(x + 50, y - 20, 10, RED);
-    M5.Lcd.fillArc(x, y + 50, 40, 45, 225, 315, RED); // への字口
+
+    // 口 (への字)
+
+    M5.Lcd.drawLine(x - 40, y + 40, x, y + 20, RED);
+
+    M5.Lcd.drawLine(x, y + 20, x + 40, y + 40, RED);
+
     M5.Lcd.fillCircle(x + 70, y - 10, 5, BLUE); // 涙
+
   }
+
   else if (emotion == 3) { // クール (REMOTE)
-    M5.Lcd.fillRect(x - 70, y - 30, 140, 20, CYAN); //サングラス
-    M5.Lcd.fillArc(x, y + 10, 40, 45, 45, 135, WHITE); // 笑顔
+
+    M5.Lcd.fillRect(x - 70, y - 30, 140, 25, CYAN); // サングラス
+
+    // 口 (笑顔)
+
+    M5.Lcd.fillRect(x - 40, y + 20, 80, 10, WHITE);
+
   }
+
 }
 
 // LEDファン制御関数
