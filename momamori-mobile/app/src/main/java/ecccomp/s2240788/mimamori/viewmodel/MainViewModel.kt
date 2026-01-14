@@ -43,7 +43,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     fun updateConnectionStatus(connected: Boolean) {
-        _isConnected.value = connected
+        _isConnected.postValue(connected)  // postValue: バックグラウンドスレッドからも安全に呼び出せる
     }
     
     /**
