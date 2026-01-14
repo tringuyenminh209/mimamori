@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- DateTime and Season Display -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#F8F9FA">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/dateTimeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--/--/-- --:--:--"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+
+                <TextView
+                    android:id="@+id/seasonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="[--]"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#667EEA" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Status Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/statusCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#00C853">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center"
+                android:minHeight="180dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/statusTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="ANZEN"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF" />
+
+                    <TextView
+                        android:id="@+id/statusBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="安全"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:background="#33FFFFFF"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="#33FFFFFF" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/faceEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="😊"
+                    android:textSize="80sp"
+                    android:gravity="center" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sensor Data Cards -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:weightSum="3">
+
+            <!-- Temperature Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_thermostat_rounded"
+                        android:scaleType="fitCenter"
+                        android:layout_marginBottom="8dp"
+                        android:contentDescription="温度アイコン" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="温度"
+                        android:textSize="12sp"
+                        android:textColor="#666666"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tempValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="°C"
+                        android:textSize="12sp"
+                        android:textColor="#999999" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Humidity Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="4dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_water_drop_outline"
+                        android:scaleType="fitCenter"
+                        android:layout_marginBottom="8dp"
+                        android:contentDescription="湿度アイコン" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="湿度"
+                        android:textSize="12sp"
+                        android:textColor="#666666"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/humValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="%"
+                        android:textSize="12sp"
+                        android:textColor="#999999" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- DI Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_stacked_bar_chart_rounded"
+                        android:scaleType="fitCenter"
+                        android:layout_marginBottom="8dp"
+                        android:contentDescription="不快指数アイコン" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="不快指数"
+                        android:textSize="12sp"
+                        android:textColor="#666666"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/diValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DI"
+                        android:textSize="12sp"
+                        android:textColor="#999999" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Control Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#F8F9FA">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="リモート制御"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="20dp" />
+
+                <LinearLayout
+                    android:id="@+id/controlStatusDisplay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="30dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ファン:"
+                        android:textSize="18sp"
+                        android:textColor="#666666" />
+
+                    <TextView
+                        android:id="@+id/fanStatusText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="OFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#666666"
+                        android:background="#E0E0E0"
+                        android:paddingHorizontal="15dp"
+                        android:paddingVertical="5dp"
+                        android:backgroundTint="#E0E0E0" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/fanToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="120dp"
+                    android:minHeight="60dp"
+                    android:scaleX="1.2"
+                    android:scaleY="1.2"
+                    android:thumbTint="#FFFFFF"
+                    app:trackTint="#CCCCCC" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Temperature Chart Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#F8F9FA">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="温度履歴"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="15dp" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/tempChartContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="#FFFFFF"
+                    android:padding="8dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="グラフはここに表示されます"
+                        android:textSize="14sp"
+                        android:textColor="#999999"
+                        android:gravity="center"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Humidity Chart Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#F8F9FA">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="湿度履歴"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="15dp" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/humChartContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="#FFFFFF"
+                    android:padding="8dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="グラフはここに表示されます"
+                        android:textSize="14sp"
+                        android:textColor="#999999"
+                        android:gravity="center"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

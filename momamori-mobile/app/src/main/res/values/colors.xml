@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Status Colors -->
+    <color name="status_anzen">#00C853</color>
+    <color name="status_chui">#FF9800</color>
+    <color name="status_kiken">#F44336</color>
+    <color name="status_samui">#2196F3</color>
+    <color name="status_remote">#00BCD4</color>
+    
+    <!-- Sensor Colors -->
+    <color name="temp_color">#F44336</color>
+    <color name="hum_color">#2196F3</color>
+    <color name="di_color">#FF9800</color>
+    
+    <!-- UI Colors -->
+    <color name="background_light">#F5F5F5</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#333333</color>
+    <color name="text_secondary">#666666</color>
+    <color name="text_hint">#999999</color>
+    <color name="primary_purple">#667EEA</color>
+    
+    <!-- Bottom Navigation Colors -->
+    <color name="bottom_nav_icon_color">#999999</color>
+    <color name="bottom_nav_icon_color_selected">#666666</color>
+</resources>

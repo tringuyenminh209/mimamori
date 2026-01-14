@@ -599,8 +599,25 @@ void loop() {
     drawFace(face, bg); // 顔を描画（背景色を渡す）
     setFan(fanState, fanColor); // LED制御
 
-    // データ送信
-    client.publish(topic_data, status.c_str());
+    // JSON形式でデータ送信
+    long timestamp = 0;
+    if (getLocalTime(&timeinfo)) {
+      timestamp = mktime(&timeinfo);
+    }
+    
+    // JSON文字列を手動で構築
+    String jsonString = "{";
+    jsonString += "\"status\":\"" + status + "\",";
+    jsonString += "\"temp\":" + String(temp, 1) + ",";
+    jsonString += "\"hum\":" + String(hum, 1) + ",";
+    jsonString += "\"di\":" + String(di, 1);
+    if (timestamp > 0) {
+      jsonString += ",\"timestamp\":" + String(timestamp);
+    }
+    jsonString += "}";
+    
+    // MQTT送信
+    client.publish(topic_data, jsonString.c_str());
     
     ambient.set(1, temp);
     ambient.set(2, hum);
