@@ -37,6 +37,7 @@ const char* writeKey = "94699ddf84649123"; // Ambient Write Key
 // LED設定 (Port B: GPIO 26)
 #define LED_PIN 26
 #define NUM_LEDS 3
+const uint8_t ledBrightness = 80;
 // --------------------------------
 
 WiFiClient espClient;
@@ -47,8 +48,12 @@ Adafruit_NeoPixel pixels(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 // 変数
 bool remoteFanOn = false; // リモート操作状態
+String lastControlMsg = "";
+unsigned long lastSubAt = 0;
 float lastTemp = 0.0;     // 前回の温度 (トレンド分析用)
 bool timeInitialized = false; // NTP時刻初期化フラグ
+unsigned long lastPublishAt = 0;
+const unsigned long publishIntervalMs = 2000;
 
 // 季節エフェクト用変数
 struct SnowFlake {
@@ -207,8 +212,8 @@ void drawFace(int emotion, uint16_t bgColor) {
   }
 }
 
-// LEDファン制御関数
-void setFan(bool state, uint32_t color) {
+// LED制御関数
+void setLed(bool state, uint32_t color) {
   if (state) {
     for(int i=0; i<NUM_LEDS; i++) pixels.setPixelColor(i, color);
   } else {
@@ -217,17 +222,31 @@ void setFan(bool state, uint32_t color) {
   pixels.show();
 }
 
+void testLed() {
+  setLed(true, pixels.Color(255, 0, 0));
+  delay(150);
+  setLed(true, pixels.Color(0, 255, 0));
+  delay(150);
+  setLed(true, pixels.Color(0, 0, 255));
+  delay(150);
+  setLed(false, pixels.Color(0, 0, 0));
+}
+
 // MQTT受信コールバック (リモート操作)
 void callback(char* topic, byte* payload, unsigned int length) {
   String msg = "";
   for (int i = 0; i < length; i++) msg += (char)payload[i];
+  msg.trim();
+  lastControlMsg = msg;
   
-  if (msg == "FAN_ON") {
+  if (msg == "LED_ON" || msg == "FAN_ON") {
     remoteFanOn = true;
+    setLed(true, pixels.Color(0, 255, 0)); // 即時反映
     M5.Lcd.setCursor(10, 220); M5.Lcd.print("REMOTE: ON ");
   } 
-  else if (msg == "FAN_OFF") {
+  else if (msg == "LED_OFF" || msg == "FAN_OFF") {
     remoteFanOn = false;
+    setLed(false, pixels.Color(0, 0, 0)); // 即時反映
     M5.Lcd.setCursor(10, 220); M5.Lcd.print("REMOTE: OFF");
   }
 }
@@ -247,7 +266,7 @@ void reconnect() {
   while (!client.connected()) {
     String clientId = "M5A-" + String(random(0xffff), HEX);
     if (client.connect(clientId.c_str())) {
-      client.subscribe(topic_control); // 制御トピックを購読
+      client.subscribe(topic_control, 1); // 制御トピックを購読
     } else {
       delay(5000);
     }
@@ -483,6 +502,10 @@ void setup() {
   M5.Power.begin();
   M5.Lcd.setTextSize(2);
   pixels.begin(); // LED初期化
+  pixels.setBrightness(ledBrightness);
+  pixels.clear();
+  pixels.show();
+  testLed();
 
   if (!sht3x.begin(&Wire, 0x44, 21, 22, 400000)) {
     M5.Lcd.println("Sensor Error!"); while (1);
@@ -510,8 +533,30 @@ void setup() {
 void loop() {
   if (!client.connected()) reconnect();
   client.loop(); // MQTT受信処理
+  M5.update(); // ボタン状態更新
+  
+  // 物理ボタンでLED制御
+  if (M5.BtnA.wasPressed()) {
+    remoteFanOn = !remoteFanOn;
+    lastControlMsg = remoteFanOn ? "BTN_A: LED_ON" : "BTN_A: LED_OFF";
+  }
+  if (M5.BtnB.wasPressed()) {
+    remoteFanOn = true;
+    lastControlMsg = "BTN_B: LED_ON";
+  }
+  if (M5.BtnC.wasPressed()) {
+    remoteFanOn = false;
+    lastControlMsg = "BTN_C: LED_OFF";
+  }
+  
+  if (client.connected() && millis() - lastSubAt > 5000) {
+    client.subscribe(topic_control); // 再購読（保険）
+    lastSubAt = millis();
+  }
 
-  if (sht3x.update()) {
+  const bool shouldPublish = millis() - lastPublishAt >= publishIntervalMs;
+  if (shouldPublish && sht3x.update()) {
+    lastPublishAt = millis();
     float temp = sht3x.cTemp;
     float hum = sht3x.humidity;
     float di = calculateDI(temp, hum);
@@ -520,48 +565,21 @@ void loop() {
     bool heatSpike = (temp - lastTemp > 2.0); 
     lastTemp = temp;
 
-    // 状態判定 (優先順位: リモート > 温度 > DI)
+    // 状態判定（LED ON/OFFのみを優先）
     String status = "ANZEN";
     uint16_t bg = GREEN;
     int face = 0;
     
-    // ファン/暖房制御ロジック (自動 OR リモート)
-    bool fanState = false;
-    uint32_t fanColor = pixels.Color(0,0,0);
+    // LED制御ロジック（リモートのみ）
+    bool ledState = remoteFanOn;
+    uint32_t ledColor = pixels.Color(0, 0, 0);
 
     if (remoteFanOn) {
-      // 最優先: リモート制御
       status = "REMOTE";
       bg = CYAN;
       face = 3; // クール顔
-      fanState = true;
-      fanColor = pixels.Color(0, 255, 0); // 緑 (リモート中)
+      ledColor = pixels.Color(0, 255, 0); // 緑 (リモート中)
     }
-    else if (temp < 18.0) {
-      // 第2優先: 寒い状態 (SAMUI)
-      status = "SAMUI";
-      bg = BLUE; // 青背景 (警告)
-      face = 4; // 震える顔
-      fanState = true;
-      fanColor = pixels.Color(255, 100, 0); // オレンジ (暖房)
-    }
-    else if (di >= 80 || heatSpike) {
-      // 第3優先: 危険状態 (KIKEN)
-      status = "KIKEN";
-      bg = RED;
-      face = 2; // 泣き顔
-      fanState = true;
-      fanColor = pixels.Color(255, 0, 0); // 赤 (危険)
-    }
-    else if (di >= 75) {
-      // 第4優先: 注意状態 (CHUI)
-      status = "CHUI";
-      bg = YELLOW;
-      face = 1; // 真顔
-      fanState = true;
-      fanColor = pixels.Color(0, 0, 255); // 青 (弱)
-    }
-    // デフォルト: ANZEN (DI < 75 && temp >= 18°C)
 
     // 画面更新
     M5.Lcd.fillScreen(bg);
@@ -590,6 +608,16 @@ void loop() {
     M5.Lcd.setCursor(10, 95);
     M5.Lcd.printf("DI: %.1f  [%s]", di, status.c_str());
     
+    // LED state display (auto or remote)
+    M5.Lcd.setCursor(10, 125);
+    M5.Lcd.setTextColor(textColor);
+    M5.Lcd.printf("LED: %s", ledState ? "ON" : "OFF");
+    
+    // Last control command
+    M5.Lcd.setCursor(10, 145);
+    M5.Lcd.setTextColor(textColor);
+    M5.Lcd.printf("CTRL: %s", lastControlMsg.c_str());
+    
     if (heatSpike) {
       M5.Lcd.setCursor(200, 95);
       M5.Lcd.setTextColor(RED);
@@ -597,7 +625,7 @@ void loop() {
     }
 
     drawFace(face, bg); // 顔を描画（背景色を渡す）
-    setFan(fanState, fanColor); // LED制御
+    setLed(ledState, ledColor); // LED制御
 
     // JSON形式でデータ送信
     long timestamp = 0;
@@ -611,6 +639,7 @@ void loop() {
     jsonString += "\"temp\":" + String(temp, 1) + ",";
     jsonString += "\"hum\":" + String(hum, 1) + ",";
     jsonString += "\"di\":" + String(di, 1);
+    jsonString += ",\"led\":" + String(ledState ? "true" : "false");
     if (timestamp > 0) {
       jsonString += ",\"timestamp\":" + String(timestamp);
     }
@@ -625,5 +654,5 @@ void loop() {
     ambient.send();
   }
   
-  delay(2000); // 2秒間隔
+  // delayを使わずMQTT受信を阻害しない
 }

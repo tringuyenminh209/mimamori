@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import ecccomp.s2240788.mimamori.data.AppDatabase
 import ecccomp.s2240788.mimamori.data.SensorData
 import ecccomp.s2240788.mimamori.data.SensorDataDao
+import ecccomp.s2240788.mimamori.network.MqttService
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -28,6 +29,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Connection status
     private val _isConnected = MutableLiveData<Boolean>()
     val isConnected: LiveData<Boolean> = _isConnected
+
+    // Last MQTT data received time (for M5Stack connection check)
+    private val _lastMessageAt = MutableLiveData<Long>(0L)
+    val lastMessageAt: LiveData<Long> = _lastMessageAt
     
     // Fan state
     private val _fanState = MutableLiveData<Boolean>(false)
@@ -36,10 +41,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // History data（FlowをLiveDataに変換）
     // Flow: データが変更されると自動的に通知される
     val allHistoryData: LiveData<List<SensorData>> = dao.getAllData().asLiveData()
+
+    private val mqttService: MqttService = MqttService(application)
+    private var controlTopic: String = "sk2a22/control"
     
     init {
         // アプリ起動時に最新データを読み込む
         loadLatestData()
+
+        mqttService.onMessageReceived = { topic, payload ->
+            processMqttMessage(topic, payload)
+        }
+
+        mqttService.onConnectionStatusChanged = { connected ->
+            updateConnectionStatus(connected)
+        }
     }
     
     fun updateConnectionStatus(connected: Boolean) {
@@ -60,16 +76,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val json = JSONObject(payload)
                 // JSONからSensorDataオブジェクトを作成
+                val rawTimestamp = json.optLong("timestamp", System.currentTimeMillis())
+                val normalizedTimestamp = if (rawTimestamp in 1..999_999_999_999L) {
+                    rawTimestamp * 1000
+                } else {
+                    rawTimestamp
+                }
+
                 val sensorData = SensorData(
                     status = json.optString("status", "ANZEN"),
                     temperature = json.optDouble("temp", 0.0).toFloat(),
                     humidity = json.optDouble("hum", 0.0).toFloat(),
                     discomfortIndex = json.optDouble("di", 0.0).toFloat(),
-                    timestamp = json.optLong("timestamp", System.currentTimeMillis())
+                    timestamp = normalizedTimestamp
                 )
+
+                if (json.has("led")) {
+                    val ledValue = json.opt("led")
+                    val ledOn = when (ledValue) {
+                        is Boolean -> ledValue
+                        is Number -> ledValue.toInt() == 1
+                        is String -> ledValue.equals("true", true) || ledValue == "1"
+                        else -> false
+                    }
+                    _fanState.postValue(ledOn)
+                }
                 
                 // UI更新用（即座に反映）
-                _currentData.value = sensorData
+                _currentData.postValue(sensorData)
+                _lastMessageAt.postValue(System.currentTimeMillis())
                 
                 // データベースに保存（バックグラウンドで実行）
                 saveData(sensorData)
@@ -126,5 +161,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     fun getRecentData(limit: Int): LiveData<List<SensorData>> {
         return dao.getRecentData(limit).asLiveData()
+    }
+
+    fun startMqtt(broker: String, dataTopic: String, controlTopic: String) {
+        this.controlTopic = controlTopic
+        if (!mqttService.isConnected()) {
+            mqttService.connect(broker, dataTopic, controlTopic)
+        }
+    }
+
+    fun publishFanControl(isOn: Boolean) {
+        val message = if (isOn) "LED_ON" else "LED_OFF"
+        mqttService.publish(controlTopic, message)
     }
 }

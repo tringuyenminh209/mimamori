@@ -72,7 +72,7 @@ class MqttService(private val context: Context) {
             mqttClient?.subscribe(topicData, 0)
             Log.d("MqttService", "Subscribed to $topicData")
             
-            mqttClient?.subscribe(topicControl, 0)
+            mqttClient?.subscribe(topicControl, 1)
             Log.d("MqttService", "Subscribed to $topicControl")
         } catch (e: Exception) {
             Log.e("MqttService", "Error subscribing", e)
@@ -83,7 +83,8 @@ class MqttService(private val context: Context) {
         scope.launch {
             try {
                 val mqttMessage = MqttMessage(message.toByteArray())
-                mqttMessage.qos = 0
+                mqttMessage.qos = if (topic == topicControl) 1 else 0
+                mqttMessage.isRetained = topic == topicControl
                 mqttClient?.publish(topic, mqttMessage)
                 Log.d("MqttService", "Published to $topic")
             } catch (e: Exception) {

@@ -8,8 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import ecccomp.s2240788.mimamori.R
 import ecccomp.s2240788.mimamori.viewmodel.MainViewModel
@@ -39,13 +41,32 @@ class MainActivity : AppCompatActivity() {
         // Setup Bottom Navigation
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNav.setupWithNavController(navController)
+
+        val appBarLayout = findViewById<AppBarLayout>(R.id.appBarLayout)
+        val navHostContainer = findViewById<View>(R.id.nav_host_fragment)
         
         // Initialize connection status
         updateConnectionStatus(false) // Start with disconnected
+
+        viewModel.isConnected.observe(this) { connected ->
+            updateConnectionStatus(connected)
+        }
         
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(appBarLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, v.paddingBottom)
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom)
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(navHostContainer) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
         }
     }
@@ -55,12 +76,14 @@ class MainActivity : AppCompatActivity() {
      * @param connected true if connected, false if disconnected
      */
     fun updateConnectionStatus(connected: Boolean) {
-        if (connected) {
-            statusDot.setBackgroundResource(R.drawable.status_dot_connected)
-            connectionStatusText.text = getString(R.string.connection_status_connected)
-        } else {
-            statusDot.setBackgroundResource(R.drawable.status_dot_disconnected)
-            connectionStatusText.text = getString(R.string.connection_status_disconnected)
+        runOnUiThread {
+            if (connected) {
+                statusDot.setBackgroundResource(R.drawable.status_dot_connected)
+                connectionStatusText.text = getString(R.string.connection_status_connected)
+            } else {
+                statusDot.setBackgroundResource(R.drawable.status_dot_disconnected)
+                connectionStatusText.text = getString(R.string.connection_status_disconnected)
+            }
         }
     }
     
@@ -68,7 +91,9 @@ class MainActivity : AppCompatActivity() {
      * Set connection status to connecting
      */
     fun setConnectionStatusConnecting() {
-        statusDot.setBackgroundResource(R.drawable.status_dot_connecting)
-        connectionStatusText.text = getString(R.string.connection_status_connecting)
+        runOnUiThread {
+            statusDot.setBackgroundResource(R.drawable.status_dot_connecting)
+            connectionStatusText.text = getString(R.string.connection_status_connecting)
+        }
     }
 }

@@ -50,7 +50,8 @@
     <string name="humidity">湿度</string>
     <string name="discomfort_index">不快指数</string>
     <string name="remote_control">リモート制御</string>
-    <string name="fan">ファン</string>
+    <string name="fan">LED</string>
+    <string name="led_label">LED:</string>
     <string name="fan_on">ON</string>
     <string name="fan_off">OFF</string>
     <string name="temp_history">温度履歴</string>
@@ -104,4 +105,11 @@
     <string name="connection_status_connecting">接続中...</string>
     <string name="connection_status_connected">接続済み</string>
     <string name="connection_status_disconnected">切断中</string>
+
+    <!-- Device Connection -->
+    <string name="device_connected">M5Stack: 接続中</string>
+    <string name="device_disconnected">M5Stack: 未接続</string>
+    <string name="device_last_received_format">最終受信: %1$s</string>
+    <string name="device_last_received_none">--</string>
+    <string name="device_last_received_placeholder">最終受信: --</string>
 </resources>
